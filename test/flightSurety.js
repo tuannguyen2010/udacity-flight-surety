@@ -75,13 +75,13 @@ contract('Flight Surety Tests', async (accounts) => {
     
     // ARRANGE
     let newAirline = accounts[2];
-
+    let name = "Crypto Airline";
     // ACT
     try {
-        await config.flightSuretyApp.registerAirline(newAirline, {from: config.firstAirline});
+        await config.flightSuretyApp.registerAirline(name, newAirline, {from: config.firstAirline});
     }
     catch(e) {
-
+        console.log("registerAirline error");
     }
     let result = await config.flightSuretyData.isAirline.call(newAirline); 
 
@@ -90,5 +90,21 @@ contract('Flight Surety Tests', async (accounts) => {
 
   });
  
-
+//   it('(airline) register an Airline using registerAirline() if no vote need', async () => {
+//     // ARRANGE
+//     let newAirline = accounts[3];
+//     let name = "Crypto Airline 2";
+//     let numberAirline = await config.flightSuretyData.getNumberOfRegisteredAirline();
+//     console.log(numberAirline.toNumber());
+//     try {
+//         let result = await config.flightSuretyApp.registerAirline(name, newAirline, {from: config.firstAirline});
+//         assert.equal(result.success, true, "Airline register failed");
+//         assert.equal(result.vote, 4, "Vote need even not exceed thresholds");
+//     } catch(e) {
+//         console.log("registerAirline error")
+//     }
+    
+    //console.log(result);
+    
+  //});
 });
