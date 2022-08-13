@@ -16,11 +16,12 @@ contract FlightSuretyData {
     struct Airline {
         string name;
         bool isRegistered;
+        bool isFunded;
     }
 
     mapping(address => Airline) airlines;
 
-    uint256 numberOfRegisterdAirline = 0;
+    address[] numberOfRegisterdAirline = new address[](0);
 
     //uint8 constant M = 4; // Threehold number of airline that start the multi-party consensus
 
@@ -28,12 +29,13 @@ contract FlightSuretyData {
     //mapping(address => address[]) airlineConsensus;
 
     struct Flight {
+        string flight;
         bool isRegistered;
         uint8 statusCode;
-        uint256 updatedTimestamp;        
+        uint256 timestamp;        
         address airline;
     }
-    mapping(bytes32 => Flight) private flights;
+    mapping(bytes32 => Flight) flights;
 
     mapping(address => uint256) private authorizedContracts;
 
@@ -50,9 +52,11 @@ contract FlightSuretyData {
     /********************************************************************************************/
 
     event AirlineRegistered(string name, address airlineArr);
+    event FlightRegistered(bytes32 flightKey, string name, address airlineArr, uint256 timestamp);
     event BoughtInsurance(address passenger, uint256 value, uint256 timestamp);
     event InsuranceIsPaid(address passenger, uint256 value);
-
+    event Funded(address airlineArr);
+    event ProcessFlightStatus(address airlineArr, string flight, uint256 timestamp, uint8 statusCode);
 
     /**
     * @dev Constructor
@@ -60,18 +64,20 @@ contract FlightSuretyData {
     */
     constructor
                                 (
-
+                                    string name,
+                                    address airlineArr
                                 ) 
                                 public 
     {
         contractOwner = msg.sender;
 
-        airlines[msg.sender] = Airline({
-            name: "FirstAirlineName",
-            isRegistered: true
+        airlines[airlineArr] = Airline({
+            name: name,
+            isRegistered: true,
+            isFunded: false
         });
 
-        numberOfRegisterdAirline ++;
+        numberOfRegisterdAirline.push(airlineArr);
     }
 
     /********************************************************************************************/
@@ -142,10 +148,6 @@ contract FlightSuretyData {
         operational = mode;
     }
 
-    function isFlightRegisterd(bytes32 id) external view returns(bool) {
-        return flights[id].isRegistered;
-    }
-
     function authorizeCaller
                             (
                                 address contractAddress
@@ -181,57 +183,26 @@ contract FlightSuretyData {
                                 address airlineArr
                             )
                             external
-                            //requireIsOperational
-                            //requireIsCallerAuthorized
+                            requireIsOperational
+                            requireIsCallerAuthorized
                             returns (bool success)
     {
-        //require(!airlines[airlineArr].isRegistered, "Airline is registered");
+        require(!airlines[airlineArr].isRegistered, "Airline is already in list");
 
-        bool result = true;
+        success = true;
         airlines[airlineArr] = Airline({
                     name: name,
-                    isRegistered: true
+                    isRegistered: true,
+                    isFunded: false
                 });       
-        numberOfRegisterdAirline ++;
+        numberOfRegisterdAirline.push(airlineArr);
         emit AirlineRegistered(name, airlineArr);
 
-        return result;
-        // if(numberOfRegisterdAirline >= M) {
-        //     bool isDuplicate = false;
-        //     for(uint c=0; c<airlineConsensus[wallet].length; c++) {
-        //         if (airlineConsensus[wallet][c] == msg.sender) {
-        //             isDuplicate = true;
-        //             break;
-        //         }
-        //     }
-        //     require(!isDuplicate, "Caller has already called this function.");
-
-        //     airlineConsensus[wallet].push(msg.sender);
-        //     if (airlineConsensus[wallet].length >= numberOfRegisterdAirline.div(2)) {
-        //         airlines[wallet] = Airline({
-        //             name: name,
-        //             isRegistered: true
-        //         });        
-        //         numberOfRegisterdAirline ++;
-        //         emit airlineRegistered(name);
-        //     }
-        // } else {
-        //     require(airlines[msg.sender].isRegistered, "Only registerd airline can perform");
-        //     airlines[wallet] = Airline({
-        //         name: name,
-        //         isRegistered: true
-        //     });
-        //     numberOfRegisterdAirline ++;
-        //     emit airlineRegistered(name);
-        // }
+        return success;
         
     }
 
-    // function getAirline(address airlineArr) external view returns (Airline memory) {
-    //     return airlines[airlineArr];
-    // }
-
-    function getNumberOfRegisteredAirline() external view returns (uint256) {
+    function getNumberOfRegisteredAirline() external view returns (address[]) {
         return numberOfRegisterdAirline;
     }
 
@@ -239,9 +210,9 @@ contract FlightSuretyData {
         return airlines[airlineArr].isRegistered; 
     }
 
-    // function getFlight(bytes32 flightKey) external view returns (Flight memory) {
-    //     return flights[flightKey];
-    // }
+    function isFunded(address airlineArr) external view returns(bool) {
+        return airlines[airlineArr].isFunded;
+    }
 
     function isFlight(bytes32 flightKey) external view returns (bool) {
         return flights[flightKey].isRegistered;
@@ -255,10 +226,41 @@ contract FlightSuretyData {
         }
         
     }
+    function isCreditInsurees(address passenger, bytes32 flightKey) external view returns (bool) {
+        for(uint a=0; a< flightInsureances[flightKey].length; a++){
+            if(flightInsureances[flightKey][a].passenger == passenger &&
+                flightInsureances[flightKey][a].isPaid == true) return true;
 
-    // function getInsuranceByFlightKey(bytes32 flightKey) external view returns (Insurance memory) {
-    //     return flightInsureances[flightKey];
-    // }
+            return false;
+        }
+    }
+
+    function currentFlightStatus(bytes32 flightKey) external view returns (uint8) {
+        return flights[flightKey].statusCode;
+    }
+
+    function registerFlight(
+        string flight, 
+        address airlineArr,
+        uint256 timestamp) 
+        external
+        requireIsOperational
+        returns(bool success) 
+    {
+        success =false;
+        bytes32 flightKey = getFlightKey(airlineArr, flight, timestamp);
+        flights[flightKey] = Flight({
+            flight: flight, 
+            isRegistered: true,
+            statusCode: 0, 
+            timestamp: timestamp, 
+            airline: airlineArr
+        });
+
+        success = true;
+        emit FlightRegistered(flightKey, flight, airlineArr, timestamp);
+        return success;
+    }
 
 
    /**
@@ -310,13 +312,24 @@ contract FlightSuretyData {
         for(uint a = 0; a <  flightInsureances[flightKey].length; a++) {
             if(flightInsureances[flightKey][a].isPaid == false) {
                 flightInsureances[flightKey][a].isPaid = true;
-                uint256 caculatePayValue = flightInsureances[flightKey][a].value.mul(ratio);
+                uint256 caculatePayValue = flightInsureances[flightKey][a].value + flightInsureances[flightKey][a].value.mul(ratio).div(100) ;
                 insuranceCreditsPayout[flightInsureances[flightKey][a].passenger] = caculatePayValue;
             }
             emit InsuranceIsPaid(flightInsureances[flightKey][a].passenger, caculatePayValue);
         }
         
     }
+
+    function processFlightStatus(
+        address airlineArr, 
+        string flight, 
+        uint256 timestamp, 
+        uint8 statusCode
+        ) external requireIsOperational{
+            bytes32 flightKey = getFlightKey(airlineArr, flight, timestamp);
+            flights[flightKey].statusCode = statusCode;
+            emit ProcessFlightStatus(airlineArr, flight, timestamp, statusCode);
+        }
     
 
     /**
@@ -345,10 +358,13 @@ contract FlightSuretyData {
     */   
     function fund
                             (   
+                                address airlineArr
                             )
                             public
-                            payable
+                            requireIsOperational
     {
+        airlines[airlineArr].isFunded = true;
+        emit Funded(airlineArr);
     }
 
     function getFlightKey
@@ -372,7 +388,7 @@ contract FlightSuretyData {
                             external 
                             payable 
     {
-        fund();
+        //fund();
     }
 
 

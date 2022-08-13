@@ -12,7 +12,22 @@ let flightSuretyApp = new web3.eth.Contract(FlightSuretyApp.abi, config.appAddre
 const ORACLES_COUNT = 10;
 let oracles = [];
 let accountsList = [];
-
+const STATUS_CODE_UNKNOWN = 0;
+const STATUS_CODE_ON_TIME = 10;
+const STATUS_CODE_LATE_AIRLINE = 20;
+const STATUS_CODE_LATE_WEATHER = 30;
+const STATUS_CODE_LATE_TECHNICAL = 40;
+const STATUS_CODE_LATE_OTHER = 50;
+let arr = [STATUS_CODE_UNKNOWN, 
+  STATUS_CODE_ON_TIME, 
+  STATUS_CODE_LATE_AIRLINE,
+  STATUS_CODE_LATE_WEATHER, 
+  STATUS_CODE_LATE_TECHNICAL,
+  STATUS_CODE_LATE_OTHER];
+function randomStatusCode() {
+  return arr[Math.floor(Math.random()*arr.length)];
+}
+console.log(randomStatusCode());
 //Register oracle
 web3.eth.getAccounts(async (error, accounts) => {
   if(error) {
@@ -50,7 +65,7 @@ flightSuretyApp.events.OracleRequest({
         let oracleIndexes = await flightSuretyApp.methods.getMyIndexes().call({from: accountsList[a]});
         //console.log(oracles[a]);
         if(oracleIndexes.includes(index)) {
-          let statusCode = 10;
+          let statusCode = randomStatusCode();
           flightSuretyApp.methods.submitOracleResponse(index, airline, flight, timestamp, statusCode).send({from: accountsList[a]}, (error, result) => {
             if(error) {
               console.log(error);
