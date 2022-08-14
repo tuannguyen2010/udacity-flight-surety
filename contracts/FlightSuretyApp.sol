@@ -128,7 +128,7 @@ contract FlightSuretyApp {
         require(!flightSuretyData.isAirline(airlineArr), "Airline is already register");
         
         success = false;
-        // success = flightSuretyData.registerAirline(name, airlineArr);
+        //success = flightSuretyData.registerAirline(name, airlineArr);
         // emit AirlineIsRegistered(name, airlineArr, success);
         // return (success, M);
 

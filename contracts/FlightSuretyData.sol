@@ -184,7 +184,6 @@ contract FlightSuretyData {
                             )
                             external
                             requireIsOperational
-                            requireIsCallerAuthorized
                             returns (bool success)
     {
         require(!airlines[airlineArr].isRegistered, "Airline is already in list");

@@ -24,15 +24,45 @@
         <div id="display-wrapper" class="top-20">
         </div>
         <div class="row top-20">
-            <label class="form">Flight</label> <input type="text" id="flight-number"> <btn class="btn btn-primary" id="submit-oracle">Submit to Oracles</btn>
+            <!-- <label class="form">Flight</label> <input type="text" id="flight-number"> <btn class="btn btn-primary" id="submit-oracle">Submit to Oracles</btn> -->
         </div>
 
         <div class="row top-20">
-            <label class="form">Airline Register</label> 
+            <label class="form">Airline</label> 
             <input type="text" id="airline-name"> 
             <input type="text" id="airline-address"> 
             <btn class="btn btn-primary" id="register-airline">Register Airline</btn>
+            <btn class="btn btn-primary" id="fund-airline">Fund Airline</btn>
+        </div>      
+
+        <div class="row top-20">
+            <label class="form">Flight Register</label> 
+            <!-- <input type="text" id="flight-name"> 
+            <select name="flights" id="flight-departure">
+                <option value="1660273200">2022-08-12 12:00</option>
+                <option value="1660359600">2022-08-13 12:00</option>
+                <option value="1660446000">2022-08-14 12:00</option>
+            </select>
+            <btn class="btn btn-primary" id="register-flight">Register Flight</btn> -->
         </div>
+        <div>
+            <label class="form">Flight 1</label> 
+            <input type="text" id="flight-name-1" value="A01">
+            <input type="text" id="flight-timestamp-1" value="1660273200">
+            <btn class="btn btn-primary" id="register-flight">Register Flight 1</btn>
+            <btn class="btn btn-primary" id="submit-oracle">Submit to Oracles</btn>
+        </div>
+
+        <div class="row top-20">
+            <label class="form">Passenger</label> 
+            <input type="text" id="insurance-flight-name-1" value="A01">
+            <input type="text" id="insurance-flight-timestamp-1" value="1660273200">
+            <input type="text" id="insurance-airline-address">
+            <input type="text" id="insurance-fee" value="0.01">
+            <btn class="btn btn-primary" id="buy-insurance">Buy Insurance Flight 1</btn>
+        </div>
+
+
     </main>
 
 </body>

@@ -16,7 +16,8 @@ export default class Contract {
 
     initialize(callback) {
         this.web3.eth.getAccounts((error, accts) => {
-           
+            console.log(error);
+            console.log(accts);
             this.owner = accts[0];
 
             let counter = 1;
@@ -40,25 +41,68 @@ export default class Contract {
             .call({ from: self.owner}, callback);
     }
 
-    fetchFlightStatus(flight, callback) {
+    fetchFlightStatus(flight, timestamp, callback) {
         let self = this;
         let payload = {
             airline: self.airlines[0],
             flight: flight,
-            timestamp: Math.floor(Date.now() / 1000)
+            timestamp: timestamp
+            //timestamp: Math.floor(Date.now() / 1000)
         } 
         self.flightSuretyApp.methods
             .fetchFlightStatus(payload.airline, payload.flight, payload.timestamp)
             .send({ from: self.owner}, (error, result) => {
+                console.log(result);
                 callback(error, payload);
             });
     }
 
     registerAirline(name, airlineArr, callback) {
         let self = this;
+        console.log(name);
+        console.log(airlineArr);
         self.flightSuretyApp.methods
             .registerAirline(name, airlineArr)
-            .send({ from: self.owner}, (error, result) => {
+            .send({ from: self.airlines[0]}, (error, result) => {
+                console.log(result);
+                console.log(error);
+                callback(error, result);
+            });
+    }
+
+    fund(callback) {
+        let self = this;
+        const walletValue = Web3.utils.toWei("0.1", "ether");
+        self.flightSuretyApp.methods
+            .fund()
+            .send({ from: self.airlines[0], value: walletValue}, (error, result) => {
+                console.log(result);
+                callback(error, result);
+            });
+    }
+
+    registerFlight(name, timestamp, callback) {
+        console.log(name);
+        console.log(timestamp);
+        let self = this;
+        self.flightSuretyApp.methods
+            .registerFlight(name, timestamp)
+            .send({ from: self.airlines[0]}, (error, result) => {
+                console.log(result);
+                callback(error, result);
+            });
+    }
+
+    buyInsurance(airlineArr, flight, timestamp, value, callback) {
+        console.log(airlineArr);
+        console.log(flight);
+        console.log(timestamp);
+        console.log(value);
+        let self = this;
+        const walletValue = Web3.utils.toWei(String(value), "ether");
+        self.flightSuretyApp.methods
+            .buy(airlineArr, flight, timestamp)
+            .send({ from: self.airlines[0], value: walletValue}, (error, result) => {
                 callback(error, result);
             });
     }
